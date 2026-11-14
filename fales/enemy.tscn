@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://boam2irj0k80u"]
+
+[ext_resource type="Script" uid="uid://bg6lo56f0gwva" path="res://enemy_grunt_animated.gd" id="1_4gyqm"]
+[ext_resource type="Texture2D" uid="uid://ptcpt316vhtl" path="res://assets/characters/enemy_grunt.png" id="2_4gyqm"]
+[ext_resource type="Texture2D" uid="uid://bxro0go8lih37" path="res://assets/characters/mage_shadow.png" id="3_qi2p4"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_7xaro"]
+radius = 15.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_uddtm"]
+radius = 25.0
+
+[node name="Enemy" type="CharacterBody2D" unique_id=1762830281]
+script = ExtResource("1_4gyqm")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2084058117]
+position = Vector2(0, -8)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("2_4gyqm")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1096279123]
+shape = SubResource("CircleShape2D_7xaro")
+
+[node name="AttackArea" type="Area2D" parent="." unique_id=463595082]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackArea" unique_id=456024742]
+shape = SubResource("CircleShape2D_uddtm")
+
+[node name="Shadow" type="Sprite2D" parent="." unique_id=255692607]
+z_index = -1
+texture_filter = 1
+position = Vector2(0, 17)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("3_qi2p4")

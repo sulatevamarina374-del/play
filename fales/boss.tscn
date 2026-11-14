@@ -1,0 +1,35 @@
+[gd_scene format=3 uid="uid://mlpmd0x1yxaf"]
+
+[ext_resource type="Script" uid="uid://bx4c2ptng6wpe" path="res://boss_animated.gd" id="1_6xxrv"]
+[ext_resource type="Texture2D" uid="uid://d08wr2ygb52r4" path="res://assets/characters/boss_guardian.png" id="2_6xxrv"]
+[ext_resource type="Texture2D" uid="uid://bxro0go8lih37" path="res://assets/characters/mage_shadow.png" id="3_skx2t"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_7xaro"]
+radius = 42.047592
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_uddtm"]
+radius = 51.009804
+
+[node name="Boss" type="CharacterBody2D" unique_id=1762830281]
+z_index = 1
+script = ExtResource("1_6xxrv")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2084058117]
+position = Vector2(-4.7683716e-07, -4.7683716e-07)
+scale = Vector2(1.3, 1.3)
+texture = ExtResource("2_6xxrv")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1096279123]
+shape = SubResource("CircleShape2D_7xaro")
+
+[node name="AttackArea" type="Area2D" parent="." unique_id=463595082]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackArea" unique_id=456024742]
+shape = SubResource("CircleShape2D_uddtm")
+
+[node name="Shadow" type="Sprite2D" parent="." unique_id=1174237171]
+z_index = -1
+texture_filter = 1
+position = Vector2(0, 34)
+scale = Vector2(1.3, 1.3)
+texture = ExtResource("3_skx2t")

@@ -1,0 +1,52 @@
+[gd_scene format=3 uid="uid://mrc76yco31l"]
+
+[ext_resource type="Script" uid="uid://dbu0y23uw67pb" path="res://main_menu.gd" id="1_06t4h"]
+[ext_resource type="Theme" uid="uid://c3wcfvgfahe5g" path="res://assets/ui/menu_theme.tres" id="1_fu7sn"]
+[ext_resource type="PackedScene" path="res://assets/ui/menu_background.tscn" id="3_jix8l"]
+
+[node name="MainMenu" type="Control" unique_id=929245561]
+texture_filter = 1
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_fu7sn")
+script = ExtResource("1_06t4h")
+
+[node name="MenuBackground" parent="." unique_id=1935063688 instance=ExtResource("3_jix8l")]
+z_index = 0
+layout_mode = 1
+offset_transform_enabled = true
+
+[node name="Menu" type="VBoxContainer" parent="." unique_id=920333168]
+z_index = 1
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Title" type="Label" parent="Menu" unique_id=892075874]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Mage Rooms"
+horizontal_alignment = 1
+
+[node name="Record" type="Label" parent="Menu" unique_id=889037767]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Рекорд: отсутствует"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Status" type="Label" parent="Menu" unique_id=718964290]
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="StartButton" type="Button" parent="Menu" unique_id=6526510]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+text = "Начать игру"

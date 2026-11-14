@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://1tvj8spmjpns"]
+
+[ext_resource type="Script" uid="uid://dwpnnd4fdfuch" path="res://projectile.gd" id="1_qxf0c"]
+[ext_resource type="Texture2D" uid="uid://b00luhsy57qva" path="res://assets/effects/mage_projectile.png" id="2_qxf0c"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_bws07"]
+radius = 4.0
+
+[node name="Projectile" type="Area2D" unique_id=310462311]
+z_index = 2
+script = ExtResource("1_qxf0c")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=644783761]
+z_index = 2
+texture_filter = 1
+texture = ExtResource("2_qxf0c")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=692053367]
+z_index = 2
+shape = SubResource("CircleShape2D_bws07")

@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://dkuddbp288d68"]
+
+[ext_resource type="Script" uid="uid://c13hmnqy8kqed" path="res://player.gd" id="1_onrkg"]
+[ext_resource type="Texture2D" uid="uid://bdq1uj1p38brj" path="res://assets/characters/mage_idle_sheet.png" id="2_hqtel"]
+[ext_resource type="Script" uid="uid://xc6x4brpfh3m" path="res://camera.gd" id="3_i3pqv"]
+[ext_resource type="Script" uid="uid://dqln83ss1dowd" path="res://mage_idle_animation.gd" id="3_sweqy"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_bws07"]
+radius = 26.019224
+
+[node name="Player" type="CharacterBody2D" unique_id=1145395036 groups=["player"]]
+motion_mode = 1
+platform_floor_layers = 0
+platform_wall_layers = 0
+script = ExtResource("1_onrkg")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1610610326]
+texture_filter = 1
+texture = ExtResource("2_hqtel")
+hframes = 12
+script = ExtResource("3_sweqy")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=144703397]
+shape = SubResource("CircleShape2D_bws07")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=933350505]
+limit_left = 0
+limit_top = 0
+limit_right = 800
+limit_bottom = 900
+position_smoothing_enabled = true
+script = ExtResource("3_i3pqv")
