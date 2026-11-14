@@ -1,0 +1,170 @@
+[gd_scene format=3 uid="uid://0em61n61y824"]
+
+[ext_resource type="Script" uid="uid://bqojf6vf1c4o1" path="res://room.gd" id="1_kgaip"]
+[ext_resource type="PackedScene" uid="uid://dkuddbp288d68" path="res://player.tscn" id="2_7on73"]
+[ext_resource type="PackedScene" uid="uid://boam2irj0k80u" path="res://enemy.tscn" id="3_ie535"]
+[ext_resource type="PackedScene" path="res://assets/environment/wall_visual.tscn" id="3_joxwf"]
+[ext_resource type="PackedScene" uid="uid://y3esexilu8r2" path="res://enemy_fast.tscn" id="4_ie535"]
+[ext_resource type="Script" uid="uid://du3qjkhcf6vs8" path="res://hud.gd" id="4_nq0ms"]
+[ext_resource type="Script" uid="uid://tpnrakwh1ewb" path="res://joystick.gd" id="5_7on73"]
+[ext_resource type="PackedScene" uid="uid://cpxhgb8ri7unp" path="res://enemy_shooter.tscn" id="5_nq0ms"]
+[ext_resource type="Theme" uid="uid://buojnirvdv7wf" path="res://assets/ui/upgrade_theme.tres" id="8_1id8r"]
+[ext_resource type="Theme" uid="uid://dlvaiftyax8yo" path="res://assets/ui/health_theme.tres" id="8_cv072"]
+[ext_resource type="Texture2D" uid="uid://bkrf0jr6qvral" path="res://assets/environment/door_closed.png" id="9_beyeo"]
+[ext_resource type="PackedScene" path="res://assets/environment/floor_visual.tscn" id="10_beyeo"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_uddtm"]
+size = Vector2(800, 30)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4o3f6"]
+size = Vector2(45, 45)
+
+[node name="Room" type="Node2D" unique_id=1546332123]
+script = ExtResource("1_kgaip")
+next_room_path = "uid://bg5ocs40h1uwh"
+
+[node name="Player" parent="." unique_id=1145395036 instance=ExtResource("2_7on73")]
+z_index = 1
+position = Vector2(400, 700)
+
+[node name="WallTop" type="StaticBody2D" parent="." unique_id=1484260514]
+
+[node name="Polygon2D" type="Polygon2D" parent="WallTop" unique_id=1406589016]
+position = Vector2(-36.000008, -1)
+scale = Vector2(0.9859419, 0.8666667)
+polygon = PackedVector2Array(36.513317, 1.1538461, 847.9202, 1.1538461, 847.9202, 35.76923, 36.513317, 35.76923)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallTop" unique_id=152534701]
+position = Vector2(400, 15)
+shape = SubResource("RectangleShape2D_uddtm")
+
+[node name="WallVisual" parent="WallTop" unique_id=66274641 instance=ExtResource("3_joxwf")]
+
+[node name="WallLeft" type="StaticBody2D" parent="." unique_id=1565956827]
+position = Vector2(30, 0)
+rotation = 1.5707964
+scale = Vector2(1.125, 1)
+
+[node name="Polygon2D" type="Polygon2D" parent="WallLeft" unique_id=382569497]
+position = Vector2(-36.000008, -1)
+scale = Vector2(0.9859419, 0.8666667)
+polygon = PackedVector2Array(36.513317, 1.1538461, 847.9202, 1.1538461, 847.9202, 35.76923, 36.513317, 35.76923)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallLeft" unique_id=1945947969]
+position = Vector2(400, 15)
+shape = SubResource("RectangleShape2D_uddtm")
+
+[node name="WallVisual" parent="WallLeft" unique_id=773315102 instance=ExtResource("3_joxwf")]
+
+[node name="WallRight" type="StaticBody2D" parent="." unique_id=700837984]
+position = Vector2(800, 0)
+rotation = 1.5707964
+scale = Vector2(1.125, 1)
+
+[node name="Polygon2D" type="Polygon2D" parent="WallRight" unique_id=1579426426]
+position = Vector2(-36.000008, -1)
+scale = Vector2(0.9859419, 0.8666667)
+polygon = PackedVector2Array(36.513317, 1.1538461, 847.9202, 1.1538461, 847.9202, 35.76923, 36.513317, 35.76923)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallRight" unique_id=1510812901]
+position = Vector2(400, 15)
+shape = SubResource("RectangleShape2D_uddtm")
+
+[node name="WallVisual" parent="WallRight" unique_id=1859663654 instance=ExtResource("3_joxwf")]
+
+[node name="WallBotton" type="StaticBody2D" parent="." unique_id=1345860954]
+position = Vector2(0, 870)
+
+[node name="Polygon2D" type="Polygon2D" parent="WallBotton" unique_id=813834177]
+position = Vector2(-36.000008, -1)
+scale = Vector2(0.9859419, 0.8666667)
+polygon = PackedVector2Array(36.513317, 1.1538461, 847.9202, 1.1538461, 847.9202, 35.76923, 36.513317, 35.76923)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallBotton" unique_id=1341005869]
+position = Vector2(400, 15)
+shape = SubResource("RectangleShape2D_uddtm")
+
+[node name="WallVisual" parent="WallBotton" unique_id=1343012184 instance=ExtResource("3_joxwf")]
+
+[node name="Enemy" parent="." unique_id=1762830281 instance=ExtResource("3_ie535")]
+z_index = 1
+position = Vector2(180, 200)
+
+[node name="EnemyFast" parent="." unique_id=579508124 instance=ExtResource("4_ie535")]
+position = Vector2(550, 400)
+
+[node name="EnemyFast2" parent="." unique_id=143989273 instance=ExtResource("4_ie535")]
+position = Vector2(250, 400)
+
+[node name="EnemyShooter" parent="." unique_id=1287363338 instance=ExtResource("5_nq0ms")]
+position = Vector2(400, 200)
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=2013744229]
+script = ExtResource("4_nq0ms")
+
+[node name="HealthLabel" type="Label" parent="HUD" unique_id=1745114988]
+texture_filter = 1
+offset_left = 45.0
+offset_top = 45.0
+offset_right = 156.0
+offset_bottom = 68.0
+offset_transform_enabled = true
+theme = ExtResource("8_cv072")
+theme_override_font_sizes/font_size = 22
+text = "Здоровье: 5/5"
+vertical_alignment = 1
+
+[node name="UpgradePanel" type="PanelContainer" parent="HUD" unique_id=380895318]
+texture_filter = 1
+custom_minimum_size = Vector2(340, 0)
+offset_left = 90.0
+offset_top = 180.0
+offset_right = 249.0
+offset_bottom = 308.0
+theme = ExtResource("8_1id8r")
+
+[node name="Options" type="VBoxContainer" parent="HUD/UpgradePanel" unique_id=617980501]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="HUD/UpgradePanel/Options" unique_id=1066473127]
+layout_mode = 2
+text = "Выбери улучшение"
+horizontal_alignment = 1
+
+[node name="DamageButton" type="Button" parent="HUD/UpgradePanel/Options" unique_id=158881728]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+text = "Урон +1"
+
+[node name="SpeedButton" type="Button" parent="HUD/UpgradePanel/Options" unique_id=284643041]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+text = "Стрельба быстрее"
+
+[node name="HealButton" type="Button" parent="HUD/UpgradePanel/Options" unique_id=651928445]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+text = "Лечение +2"
+
+[node name="Joystick" type="Control" parent="HUD" unique_id=937565433]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 20.0
+offset_top = 470.0
+offset_right = 160.0
+offset_bottom = 610.0
+mouse_filter = 2
+script = ExtResource("5_7on73")
+
+[node name="Exit" type="Area2D" parent="." unique_id=1760764579]
+z_index = 2
+position = Vector2(400, 65)
+
+[node name="Sprite2D" type="Sprite2D" parent="Exit" unique_id=463289047]
+texture_filter = 1
+texture = ExtResource("9_beyeo")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Exit" unique_id=839949986]
+shape = SubResource("RectangleShape2D_4o3f6")
+
+[node name="Floor" parent="." unique_id=1138835831 instance=ExtResource("10_beyeo")]
