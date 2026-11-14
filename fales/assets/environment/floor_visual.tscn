@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/floor_room.png" id="1_floor"]
+
+[node name="Floor" type="Sprite2D"]
+texture_filter = 1
+z_index = -10
+position = Vector2(400, 450)
+texture = ExtResource("1_floor")
