@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://phnb75pbsxxt"]
+
+[ext_resource type="Script" uid="uid://dcrfu1x787ypa" path="res://tests/shield_preview.gd" id="1_efcxq"]
+
+[node name="Control" type="Control" unique_id=106103777]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_efcxq")

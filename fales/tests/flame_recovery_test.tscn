@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://coijihvjb703n"]
+
+[ext_resource type="Script" uid="uid://bbmyg8dblwoa" path="res://tests/flame_recovery_test.gd" id="1_0vhhe"]
+
+[node name="FlameRecoveryTest" type="Node2D" unique_id=2100283094]
+script = ExtResource("1_0vhhe")

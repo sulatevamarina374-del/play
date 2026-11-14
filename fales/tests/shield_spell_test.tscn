@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cnroriou0beqx"]
+
+[ext_resource type="Script" uid="uid://6u8iy32q22p0" path="res://tests/shield_spell_test.gd" id="1_1x5ot"]
+
+[node name="ShieldSpellTest" type="Node" unique_id=734052599]
+script = ExtResource("1_1x5ot")

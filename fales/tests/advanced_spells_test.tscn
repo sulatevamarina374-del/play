@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bniv6swpegvv2"]
+
+[ext_resource type="Script" uid="uid://cxuo4n5ougy7t" path="res://tests/advanced_spells_test.gd" id="1_jbopf"]
+
+[node name="AdvancedSpellsTest" type="Node2D" unique_id=685633216]
+script = ExtResource("1_jbopf")

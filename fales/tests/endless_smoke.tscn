@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dgtt3u4g4qj68"]
+
+[ext_resource type="Script" uid="uid://bdvu38v8xtmg6" path="res://tests/endless_smoke_entry.gd" id="1"]
+
+[node name="TestEntry" type="Node" unique_id=1922112574]
+script = ExtResource("1")
