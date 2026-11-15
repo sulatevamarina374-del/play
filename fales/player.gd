@@ -16,12 +16,17 @@ var shield_health: float = 0.0
 var shield_time_left: float = 0.0
 var shield_max_health: float = 0.0
 
+var slow_timer: float = 0.0
+var slow_factor: float = 1.0
+var BASE_SPEED_CACHED: float = 0.0 # Запомним базовую скорость
+
 @onready var joystick: Control = get_node_or_null("../HUD/Joystick")
 
 func _ready() -> void:
 	max_health = GameState.max_health
 	speed = GameState.move_speed
 	attack_interval = GameState.attack_interval
+	BASE_SPEED_CACHED = speed
 
 	if GameState.health == -1:
 		GameState.health = max_health

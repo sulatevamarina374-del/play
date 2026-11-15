@@ -263,7 +263,11 @@ func _spawn_boss(points: Array[Vector2]) -> void:
 	if GameState.room_number == 20:
 		boss_node = RAM.instantiate()
 		boss_node.set_script(BOSS_RAM_SCRIPT)
-
+		boss_node.set(
+			"health",
+			150.0 * GameState.enemy_health_multiplier()
+		)
+		boss_node.set("speed", 75.0)
 		
 
 		# Увеличиваем изображение и тень, но не коллизию.
