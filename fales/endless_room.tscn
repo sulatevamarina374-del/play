@@ -9,7 +9,7 @@
 [ext_resource type="Script" uid="uid://cekqoku7ve0m0" path="res://endless_room.gd" id="generator"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_4o3f6"]
-size = Vector2(45, 45)
+size = Vector2(96, 64)
 
 [node name="EndlessRoom" type="Node2D" unique_id=1630516579]
 script = ExtResource("generator")
@@ -73,12 +73,12 @@ offset_bottom = 40.0
 script = ExtResource("7_qch7p")
 
 [node name="Exit" type="Area2D" parent="." unique_id=1187406253]
-z_index = 2
-position = Vector2(400, 65)
+position = Vector2(384, 48)
 monitoring = false
 
 [node name="Sprite2D" type="Sprite2D" parent="Exit" unique_id=2066607396]
 texture_filter = 1
+position = Vector2(0, -92)
 texture = ExtResource("8_42v8c")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Exit" unique_id=1202437453]

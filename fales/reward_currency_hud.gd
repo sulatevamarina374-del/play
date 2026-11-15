@@ -1,8 +1,11 @@
 extends Control
 
+const HUD_ICON = preload("res://hud_icon.gd")
+
 var balance: Label
 var message: Label
 var message_time: float = 0.0
+var coin_icon: Control
 
 
 func _ready() -> void:
@@ -13,9 +16,14 @@ func _ready() -> void:
 	theme = preload("res://assets/ui/health_theme.tres")
 
 	balance = make_label()
-	balance.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	balance.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	add_child(balance)
 
+	coin_icon = HUD_ICON.new()
+	coin_icon.set("icon_kind", "coin")
+	coin_icon.size = Vector2(20, 20)
+	add_child(coin_icon)
+	
 	message = make_label()
 	message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	message.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -56,18 +64,20 @@ func _process(delta: float) -> void:
 
 func update_display() -> void:
 	var screen: Vector2 = get_viewport().get_visible_rect().size
-	balance.text = "Монеты: %d" % Profile.coins
+	balance.text = str(Profile.coins)
 
-	var label_width: float = minf(
-		screen.x - 32.0,
-		maxf(172.0, balance.get_minimum_size().x + 16.0)
+	var label_width: float = maxf(
+		40.0,
+		balance.get_combined_minimum_size().x
 	)
+	var group_width: float = 28.0 + label_width
+	var group_left: float = screen.x - group_width - 16.0
 
 	balance.size = Vector2(label_width, 32)
-	balance.position = Vector2(
-		screen.x - label_width - 16.0,
-		screen.y - 48.0
-	)
+	balance.position = Vector2(group_left + 28.0, screen.y - 48.0)
+
+	coin_icon.size = Vector2(20.0, 20.0)
+	coin_icon.position = Vector2(group_left, screen.y - 42.0)
 
 	message.size = Vector2(
 		minf(340.0, screen.x - 32.0),

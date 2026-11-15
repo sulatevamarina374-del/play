@@ -19,10 +19,17 @@ const FLOOR_VARIANTS = [
 const WALL = preload("res://assets/environment/wall_tile.png")
 const DOOR_CLOSED = preload("res://assets/environment/door_closed.png")
 const DOOR_OPEN = preload("res://assets/environment/door_open.png")
+const HUD_ICON = preload("res://hud_icon.gd")
 const ENEMY_BULLET = preload("res://enemy_projectile.gd")
 const MAGE_BULLET = preload("res://projectile.gd")
 const FIRE_BULLET = preload("res://fire_projectile.gd")
 const MAX_ENEMIES: int = 12
+const EXIT_GAP_WIDTH: float = 96.0
+const EXIT_WALL_THICKNESS: float = 30.0
+const EXIT_DOOR_CENTER_Y: float = -12.0
+const EXIT_TRIGGER_CENTER_Y: float = 80.0
+const TOP_WALL_EXTENSION: float = 64.0
+
 const ROOM_NAMES = ["Зал", "Длинный зал", "Широкий зал", "Квадратный зал"]
 const ROOM_SIZES = [Vector2i(768, 960), Vector2i(640, 1152),
 	Vector2i(1152, 832), Vector2i(896, 896)]
@@ -31,12 +38,13 @@ const ROOM_COLORS = [Color.WHITE, Color(0.92, 1.0, 0.94),
 const REWARD_BOOK = preload("res://reward_book.gd")
 const REWARD_UI = preload("res://reward_choice_ui.gd")
 const ROOM_REWARDS = preload("res://room_rewards.gd")
-
+const BOSS_WARLOCK_SCRIPT = preload("res://boss_warlock.gd")
 
 @onready var player: CharacterBody2D = $Player
 @onready var exit_area: Area2D = $Exit
 @onready var exit_sprite: Sprite2D = $Exit/Sprite2D
 @onready var room_info: Label = $HUD/RoomInfo
+var room_icon: Control
 @onready var boss_bar: ProgressBar = $HUD/BossHealth
 @onready var boss_title: Label = $HUD/BossTitle
 
@@ -45,6 +53,8 @@ var room_size: Vector2i
 var generated: bool = false
 var room_cleared: bool = false
 var exit_unlocked: bool = false
+var exit_blocker: StaticBody2D
+var exit_blocker_shape: CollisionShape2D
 var transitioning: bool = false
 var boss_node: CharacterBody2D
 var initial_enemy_count: int = 0
@@ -65,7 +75,14 @@ func _ready() -> void:
 	room_info.add_theme_font_size_override("font_size", 22)
 	room_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	room_info.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	room_info.custom_minimum_size = Vector2(180, 56)
+	
+	room_info.custom_minimum_size = Vector2(80, 44)
+
+	room_icon = HUD_ICON.new()
+	room_icon.set("icon_kind", "door")
+	room_icon.size = Vector2(20, 24)
+	$HUD.add_child(room_icon)
+	
 	exit_area.monitoring = false
 	exit_sprite.texture = DOOR_CLOSED
 	player.set_physics_process(false)
@@ -84,6 +101,7 @@ func _generate_room() -> void:
 		GameState.run_seed = rng.randi()
 	rng.seed = GameState.run_seed + GameState.room_number * 104729
 	var is_boss_room: bool = GameState.room_number % maxi(1, GameState.boss_every) == 0
+	AudioManager.play_music("boss" if is_boss_room else "run")
 	var room_type: int = rng.randi_range(0, ROOM_NAMES.size() - 1)
 	if room_type == GameState.last_room_type:
 		room_type = (room_type + rng.randi_range(1, ROOM_NAMES.size() - 1)) % ROOM_NAMES.size()
@@ -96,13 +114,35 @@ func _generate_room() -> void:
 		room_name = "Арена босса"
 		tint = Color(0.97, 0.91, 1.0)
 	_build_floor(tint)
-	_build_wall(Vector2(room_size.x / 2.0, 15), Vector2(room_size.x, 30), false)
+	var top_wall_height: float = (
+		EXIT_WALL_THICKNESS + TOP_WALL_EXTENSION
+	)
+	var top_wall_center_y: float = (
+		EXIT_WALL_THICKNESS - TOP_WALL_EXTENSION
+	) / 2.0
+
+	_build_wall(
+		Vector2(room_size.x / 2.0, top_wall_center_y),
+		Vector2(room_size.x, top_wall_height),
+		false,
+		EXIT_GAP_WIDTH
+	)
 	_build_wall(Vector2(room_size.x / 2.0, room_size.y - 15), Vector2(room_size.x, 30), false)
 	_build_wall(Vector2(15, room_size.y / 2.0), Vector2(30, room_size.y), true)
 	_build_wall(Vector2(room_size.x - 15, room_size.y / 2.0), Vector2(30, room_size.y), true)
 	player.position = Vector2(room_size.x / 2.0, room_size.y - 140)
-	exit_area.position = Vector2(room_size.x / 2.0, 80)
+	exit_area.position = Vector2(
+		room_size.x / 2.0,
+		EXIT_TRIGGER_CENTER_Y
+	)
+	exit_sprite.position = Vector2(
+	0.0,
+	EXIT_DOOR_CENTER_Y - EXIT_TRIGGER_CENTER_Y
+	)
+	_create_exit_blocker()
+	
 	var camera: Camera2D = $Player/Camera2D
+	camera.limit_top = -int(TOP_WALL_EXTENSION)
 	camera.limit_right = room_size.x
 	camera.limit_bottom = room_size.y
 	camera.reset_smoothing()
@@ -135,7 +175,7 @@ func _generate_room() -> void:
 			_spawn_regular_enemy(points[index], true)
 			
 	initial_enemy_count = get_tree().get_nodes_in_group("enemies").size()
-	room_info.text = "Комната %d" % GameState.room_number
+	room_info.text = str(GameState.room_number)
 	player.set_physics_process(true)
 	generated = true
 	print("Комната %d: %s, врагов: %d" % [GameState.room_number, room_name, initial_enemy_count])
@@ -166,26 +206,123 @@ func _build_floor(tint: Color) -> void:
 			floor_sprite.add_child(tile)
 
 
-func _build_wall(center: Vector2, dimensions: Vector2, vertical: bool) -> void:
+func _build_wall(
+	center: Vector2,
+	dimensions: Vector2,
+	vertical: bool,
+	door_gap_width: float = 0.0
+) -> void:
+	if not vertical and door_gap_width > 0.0:
+		var gap_width: float = minf(
+			door_gap_width,
+			dimensions.x - 64.0
+		)
+		var segment_width: float = (dimensions.x - gap_width) / 2.0
+		var center_offset: float = (gap_width + segment_width) / 2.0
+
+		# Коллизии по бокам проёма, без отдельных изображений стены.
+		_build_wall_segment(
+			center + Vector2(-center_offset, 0.0),
+			Vector2(segment_width, dimensions.y),
+			false,
+			false
+		)
+		_build_wall_segment(
+			center + Vector2(center_offset, 0.0),
+			Vector2(segment_width, dimensions.y),
+			false,
+			false
+		)
+
+		# Сплошное изображение стены проходит за дверью.
+		_build_wall_visual(center, dimensions, false)
+		return
+
+	_build_wall_segment(center, dimensions, vertical)
+
+
+func _build_wall_segment(
+	center: Vector2,
+	dimensions: Vector2,
+	vertical: bool,
+	add_visual: bool = true
+) -> void:
 	var wall := StaticBody2D.new()
 	wall.position = center
+
 	var shape := RectangleShape2D.new()
 	shape.size = dimensions
+
 	var collision := CollisionShape2D.new()
 	collision.shape = shape
 	wall.add_child(collision)
+
+	if add_visual:
+		var sprite := Sprite2D.new()
+		sprite.texture = WALL
+		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		sprite.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+		sprite.region_enabled = true
+
+		if vertical:
+			sprite.rotation = PI / 2.0
+			sprite.region_rect = Rect2(0, 0, dimensions.y, dimensions.x)
+		else:
+			sprite.region_rect = Rect2(Vector2.ZERO, dimensions)
+
+		wall.add_child(sprite)
+
+	add_child(wall)
+
+
+func _build_wall_visual(
+	center: Vector2,
+	dimensions: Vector2,
+	vertical: bool
+) -> void:
 	var sprite := Sprite2D.new()
+	sprite.name = "WallVisual"
 	sprite.texture = WALL
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	sprite.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 	sprite.region_enabled = true
+	sprite.position = center
+	sprite.z_index = -1
+
 	if vertical:
 		sprite.rotation = PI / 2.0
 		sprite.region_rect = Rect2(0, 0, dimensions.y, dimensions.x)
 	else:
 		sprite.region_rect = Rect2(Vector2.ZERO, dimensions)
-	wall.add_child(sprite)
-	add_child(wall)
+
+	add_child(sprite)
+
+
+func _create_exit_blocker() -> void:
+	exit_blocker = StaticBody2D.new()
+	exit_blocker.name = "ExitBlocker"
+
+	var wall_height: float = (
+		EXIT_WALL_THICKNESS + TOP_WALL_EXTENSION
+	)
+	var wall_center_y: float = (
+		EXIT_WALL_THICKNESS - TOP_WALL_EXTENSION
+	) / 2.0
+
+	exit_blocker.position = Vector2(
+		room_size.x / 2.0,
+		wall_center_y
+	)
+	exit_blocker.collision_layer = 1
+	exit_blocker.collision_mask = 0
+
+	exit_blocker_shape = CollisionShape2D.new()
+	var shape := RectangleShape2D.new()
+	shape.size = Vector2(EXIT_GAP_WIDTH, wall_height)
+	exit_blocker_shape.shape = shape
+
+	exit_blocker.add_child(exit_blocker_shape)
+	add_child(exit_blocker)
 
 
 func _spawn_points() -> Array[Vector2]:
@@ -268,11 +405,10 @@ func _spawn_boss(points: Array[Vector2]) -> void:
 			150.0 * GameState.enemy_health_multiplier()
 		)
 		boss_node.set("speed", 75.0)
-		
-
 		# Увеличиваем изображение и тень, но не коллизию.
 		boss_node.get_node("Sprite2D").scale *= 1.35
 		boss_node.get_node("Shadow").scale *= 1.35
+		
 	else:
 		boss_node = BOSS.instantiate()
 
@@ -280,6 +416,14 @@ func _spawn_boss(points: Array[Vector2]) -> void:
 			"health",
 			85.0 * GameState.enemy_health_multiplier()
 		)
+		if GameState.room_number == 30:
+			boss_node.set_script(BOSS_WARLOCK_SCRIPT)
+			boss_node.set("health", 200.0 * GameState.enemy_health_multiplier())
+		else:
+			# Стандартный босс (Стрелок) для 10, 40, 50 и т.д.
+			boss_node.set("health", 85.0 * GameState.enemy_health_multiplier())
+			
+		boss_node.set("speed", minf(65.0, 45.0 + (tier - 1) * 2.0))
 
 		boss_node.set(
 			"speed",
@@ -314,8 +458,15 @@ func _spawn_boss(points: Array[Vector2]) -> void:
 
 func _process(_delta: float) -> void:
 	var screen: Vector2 = get_viewport().get_visible_rect().size
-	room_info.size = Vector2(maxf(180.0, room_info.get_combined_minimum_size().x), 56.0)
-	room_info.position = Vector2((screen.x - room_info.size.x) / 2.0, 10.0)
+	var badge_width: float = 108.0
+	var badge_left: float = (screen.x - badge_width) / 2.0
+
+	room_info.size = Vector2(80.0, 44.0)
+	room_info.position = Vector2(badge_left + 28.0, 10.0)
+
+	room_icon.size = Vector2(20.0, 24.0)
+	room_icon.position = Vector2(badge_left, 20.0)
+	
 	boss_frame.position = Vector2((screen.x - 300.0) / 2.0, 76.0)
 	boss_frame.size = Vector2(300.0, 56.0)
 
@@ -377,6 +528,7 @@ func _on_exit_body_entered(body: Node2D) -> void:
 	if not room_rewards.all_collected():
 		return
 	transitioning = true
+	AudioManager.play_sfx("room_transition")
 	player.call("save_run_shield")
 	GameState.health = float(player.get("health"))
 	GameState.room_number += 1
@@ -449,6 +601,7 @@ func _on_reward_book_requested() -> void:
 	reward_ui.call("open_offers")
 
 func _on_reward_finished() -> void:
+	AudioManager.play_sfx("reward_book")
 	if is_instance_valid(reward_book):
 		reward_book.call("consume")
 
@@ -468,4 +621,8 @@ func update_exit_state() -> void:
 
 	exit_unlocked = ready_to_exit
 	exit_sprite.texture = DOOR_OPEN if exit_unlocked else DOOR_CLOSED
+
+	if is_instance_valid(exit_blocker_shape):
+		exit_blocker_shape.set_deferred("disabled", exit_unlocked)
+
 	exit_area.set_deferred("monitoring", exit_unlocked)

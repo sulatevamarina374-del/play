@@ -1,4 +1,18 @@
-extends Node2D
+extends StaticBody2D
+
+
+func _ready() -> void:
+	collision_layer = 1
+	collision_mask = 0
+
+	var collision := CollisionShape2D.new()
+	var shape := RectangleShape2D.new()
+	shape.size = Vector2(40.0, 12.0)
+
+	collision.shape = shape
+	collision.position = Vector2(0.0, 6.0)
+	add_child(collision)
+
 
 func _draw() -> void:
 	# Тень, основание и передняя грань.

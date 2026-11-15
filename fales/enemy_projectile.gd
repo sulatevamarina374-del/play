@@ -4,12 +4,15 @@ extends Area2D
 @export var damage: float = 1.0
 
 var direction: Vector2 = Vector2.RIGHT
+var is_slowing: bool = false
 var lifetime: float = 4.0
 var hit: bool = false
 
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
+	if is_slowing:
+		modulate = Color(0.7, 0.3, 1.0)
 
 
 func _physics_process(delta: float) -> void:
@@ -30,6 +33,8 @@ func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
 		hit = true
 		body.take_damage(damage)
+		if is_slowing and body.has_method("apply_slow"):
+			body.apply_slow(0.25, 1.5)
 		queue_free()
 
 	elif body is StaticBody2D:

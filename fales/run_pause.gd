@@ -2,6 +2,14 @@ extends CanvasLayer
 
 const RESULT_SCENE: String = "res://run_result.tscn"
 
+const SETTINGS_PATH: String = "user://menu_settings.cfg"
+const MASTER_BUS_NAME: String = "Master"
+
+var volume_label: Label
+var volume_slider: HSlider
+var volume_feedback: Label
+var settings := ConfigFile.new()
+
 var owns_pause: bool = false
 var confirming_exit: bool = false
 var leaving: bool = false
@@ -17,6 +25,9 @@ var title: Label
 var message: Label
 var primary: Button
 var secondary: Button
+var volume_fill: ColorRect
+var volume_slider_shell: Control
+var volume_track: ColorRect
 
 
 func _ready() -> void:
@@ -25,6 +36,7 @@ func _ready() -> void:
 	
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	layer = 50
+	settings.load(SETTINGS_PATH)
 
 	root = Control.new()
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -80,6 +92,56 @@ func _ready() -> void:
 	message.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(message)
+	
+	volume_label = Label.new()
+	volume_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	volume_label.add_theme_font_size_override("font_size", 20)
+	column.add_child(volume_label)
+
+	volume_slider = HSlider.new()
+	volume_slider.min_value = 0.0
+	volume_slider.max_value = 100.0
+	volume_slider.step = 1.0
+	volume_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	# Отдельная видимая дорожка под ползунком.
+	volume_slider_shell = Control.new()
+	volume_slider_shell.custom_minimum_size.y = 56
+	volume_slider_shell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.add_child(volume_slider_shell)
+
+	volume_track = ColorRect.new()
+	volume_track.color = Color("20212b")
+	volume_track.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	volume_slider_shell.add_child(volume_track)
+
+	volume_fill = ColorRect.new()
+	volume_fill.color = Color("82a389")
+	volume_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	volume_slider_shell.add_child(volume_fill)
+
+	volume_slider.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+	var empty_style := StyleBoxEmpty.new()
+	volume_slider.add_theme_stylebox_override("slider", empty_style)
+	volume_slider.add_theme_stylebox_override("grabber_area", empty_style)
+	volume_slider.add_theme_stylebox_override(
+		"grabber_area_highlight",
+		empty_style
+	)
+	volume_slider_shell.add_child(volume_slider)
+	volume_slider_shell.resized.connect(_update_volume_track)
+
+	var current_volume: float = _current_master_volume()
+	volume_slider.value = current_volume
+	volume_label.text = "Громкость: %d%%" % int(current_volume)
+	volume_slider.value_changed.connect(_on_volume_changed)
+	_update_volume_track()
+
+	volume_feedback = Label.new()
+	volume_feedback.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	volume_feedback.add_theme_font_size_override("font_size", 16)
+	column.add_child(volume_feedback)
 
 	primary = Button.new()
 	primary.custom_minimum_size.y = 56
@@ -109,7 +171,7 @@ func update_layout() -> void:
 
 	panel.size = Vector2(
 		minf(340.0, screen.x - 32.0),
-		minf(360.0, screen.y - 32.0)
+		minf(440.0, screen.y - 32.0)
 	)
 	panel.position = (screen - panel.size) * 0.5
 
@@ -189,6 +251,7 @@ func leave_run() -> void:
 
 	var previous_result: String = GameState.result
 	GameState.result = "Забег завершён игроком."
+	AudioManager.play_sfx("run_abandon")
 
 	get_tree().paused = false
 
@@ -268,3 +331,62 @@ func send_back_action() -> void:
 	released.action = "ui_cancel"
 	released.pressed = false
 	get_viewport().push_input(released)
+
+
+func _current_master_volume() -> float:
+	var bus_index: int = AudioServer.get_bus_index(MASTER_BUS_NAME)
+
+	if bus_index < 0:
+		return 100.0
+
+	if AudioServer.is_bus_mute(bus_index):
+		return 0.0
+
+	return clampf(
+		db_to_linear(AudioServer.get_bus_volume_db(bus_index)) * 100.0,
+		0.0,
+		100.0
+	)
+
+
+func _on_volume_changed(value: float) -> void:
+	var bus_index: int = AudioServer.get_bus_index(MASTER_BUS_NAME)
+
+	if bus_index >= 0:
+		AudioServer.set_bus_mute(bus_index, value <= 0.0)
+		AudioServer.set_bus_volume_db(
+			bus_index,
+			linear_to_db(maxf(value / 100.0, 0.0001))
+		)
+
+	volume_label.text = "Громкость: %d%%" % int(value)
+	settings.set_value("audio", "volume", value)
+	_update_volume_track()
+
+	var save_error: Error = settings.save(SETTINGS_PATH)
+	volume_feedback.text = (
+		"" if save_error == OK
+		else "Не удалось сохранить настройку."
+	)
+
+func _update_volume_track() -> void:
+	if not is_instance_valid(volume_slider_shell):
+		return
+
+	var inset: float = 14.0
+	var track_height: float = 6.0
+	var track_width: float = maxf(
+		volume_slider_shell.size.x - inset * 2.0,
+		0.0
+	)
+	var track_y: float = (
+		volume_slider_shell.size.y - track_height
+	) * 0.5
+
+	volume_track.position = Vector2(inset, track_y)
+	volume_track.size = Vector2(track_width, track_height)
+	volume_fill.position = volume_track.position
+	volume_fill.size = Vector2(
+		track_width * volume_slider.value / 100.0,
+		track_height
+	)

@@ -3,6 +3,11 @@ extends CharacterBody2D
 signal shot_fired
 
 var speed: float = GameState.BASE_MOVE_SPEED
+
+var slow_timer: float = 0.0
+var slow_factor: float = 1.0
+var base_speed_cached: float = 0.0
+
 var attack_interval: float = GameState.BASE_ATTACK_INTERVAL
 
 const PROJECTILE_SCENE = preload("res://projectile.tscn")
@@ -16,17 +21,13 @@ var shield_health: float = 0.0
 var shield_time_left: float = 0.0
 var shield_max_health: float = 0.0
 
-var slow_timer: float = 0.0
-var slow_factor: float = 1.0
-var BASE_SPEED_CACHED: float = 0.0 # Запомним базовую скорость
-
 @onready var joystick: Control = get_node_or_null("../HUD/Joystick")
 
 func _ready() -> void:
 	max_health = GameState.max_health
 	speed = GameState.move_speed
+	base_speed_cached = speed
 	attack_interval = GameState.attack_interval
-	BASE_SPEED_CACHED = speed
 
 	if GameState.health == -1:
 		GameState.health = max_health
@@ -71,7 +72,15 @@ func _physics_process(delta: float) -> void:
 		if joystick.direction != Vector2.ZERO:
 			direction = joystick.direction
 
-	velocity = direction * speed
+	if slow_timer > 0.0:
+		slow_timer -= delta
+	if slow_timer <= 0.0:
+		slow_factor = 1.0
+
+	var current_speed = base_speed_cached * slow_factor
+
+	velocity = direction * current_speed
+
 	move_and_slide()
 
 	attack_cooldown -= delta
@@ -116,6 +125,7 @@ func shoot_at_nearest_enemy() -> void:
 	get_tree().current_scene.add_child(projectile)
 	projectile.global_position = global_position
 	shot_fired.emit()
+	AudioManager.play_sfx("mage_shot")
 
 func update_shield(delta: float) -> void:
 	if not is_finite(delta) or delta <= 0.0:
@@ -197,6 +207,7 @@ func take_damage(amount: float) -> void:
 
 
 func die() -> void:
+	AudioManager.play_sfx("player_death")
 	GameState.result = "Маг погиб. Попробуем ещё раз!"
 
 	get_tree().call_deferred(
@@ -267,3 +278,7 @@ func restore_run_shield() -> void:
 	shield_time_left = saved_time
 
 	save_run_shield()
+
+func apply_slow(amount: float, duration: float) -> void:
+	slow_factor = 1.0 - amount
+	slow_timer = maxf(slow_timer, duration)
