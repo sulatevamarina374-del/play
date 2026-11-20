@@ -80,7 +80,7 @@ func _ready() -> void:
 
 	room_icon = HUD_ICON.new()
 	room_icon.set("icon_kind", "door")
-	room_icon.size = Vector2(20, 24)
+	room_icon.size = Vector2(22, 26)
 	$HUD.add_child(room_icon)
 	
 	exit_area.monitoring = false
@@ -464,8 +464,8 @@ func _process(_delta: float) -> void:
 	room_info.size = Vector2(80.0, 44.0)
 	room_info.position = Vector2(badge_left + 28.0, 10.0)
 
-	room_icon.size = Vector2(20.0, 24.0)
-	room_icon.position = Vector2(badge_left, 20.0)
+	room_icon.size = Vector2(22.0, 26.0)
+	room_icon.position = Vector2(badge_left - 6.0, 19.0)
 	
 	boss_frame.position = Vector2((screen.x - 300.0) / 2.0, 76.0)
 	boss_frame.size = Vector2(300.0, 56.0)
